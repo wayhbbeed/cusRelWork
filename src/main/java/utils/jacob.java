@@ -1,14 +1,17 @@
-package main.java;
+package main.java.utils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+
+import main.java.Cus;
 
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import com.jacob.com.Variant;
 //import test.wordBean;
-public class Jacob {
+public class Words {
 	 // word文档
 	 private static Dispatch doc;
 	 // word运行程序对象
@@ -20,8 +23,10 @@ public class Jacob {
 	 private boolean saveOnExit = true;
 	 
 	 private ArrayList alist=null;
+	 private ArrayList<Cus> al1=null;
+	 private Cus cus=null;
 	 
-	 public Jacob() throws Exception {
+	 public Words() throws Exception {
 		  if (word == null) {
 			  word = new ActiveXComponent("Word.Application");
 			  word.setProperty("Visible", new Variant(false)); // 不可见打开word
@@ -116,58 +121,68 @@ public class Jacob {
 		  }
 		  return alist;
 		 }
+	 //获取文件夹下文件数量
+	 public  int getFileCount(File filedir) throws Exception{
+		  File[] file = filedir.listFiles();
+		  int filecount=file.length;
+		  return filecount;
+		 }
+	 
+	 //获取表格中的所有有效内容
+	 public ArrayList<Cus> getFileContent() throws Exception{
+		 
+		  File myfiledir = new File("C:\\list");
+		  File[] file = myfiledir.listFiles();
+		  
+		  al1=new ArrayList<Cus>();
+		  cus=new Cus();
+		  
+		  for (int i = 0; i < file.length; i++) {
+			  System.out.println(file.length);
+			  if (!file[i].isHidden()) {
+				  
+				  String filepaths=getFilePath(myfiledir).get(i).toString();
+				  String filenames=getFileName(myfiledir).get(i).toString();
+				  openDocument(filepaths);
+				  // 所有表格
+				  Dispatch tables = Dispatch.get(doc, "Tables").toDispatch(); 
+				  // 获取第1个表格
+				  Dispatch table = Dispatch.call(tables, "Item", new Variant(1)).toDispatch();
+				  // 获取表格值（固定10行）
+			      cus=new Cus();
+			      cus.setId(filenames);
+			      cus.setProvince(getTxtFromCell(1, 1, 2));
+			      cus.setProvince_manager(getTxtFromCell(1, 2, 2));
+			      cus.setCustom(getTxtFromCell(1, 3, 2));
+			      cus.setBusiness(getTxtFromCell(1, 4, 2));
+			      cus.setReceiver(getTxtFromCell(1, 5, 2));
+			      cus.setBill_info(getTxtFromCell(1, 6, 2));
+			      cus.setInvoice_info(getTxtFromCell(1, 7, 2));
+			      cus.setCus_info(getTxtFromCell(1, 8, 2));
+			      cus.setGoods(getTxtFromCell(1, 9, 2));
+			      cus.setRequirement(getTxtFromCell(1, 10, 2));
+			      closeDocumentWithoutSave();
+			}else{
+				  System.out.println("请关闭所有Word文档，并结束进程！");
+				  break;
+			}
+			      al1.add(cus);
+		    }
+		          close();
+		          return al1;
+	 }
 	 
 //测试方法
- public static void main(String[] args)throws Exception{
-	  Jacob word = new Jacob(); 
-	  
-	  File myfiledir = new File("C:\\list");
-      String filepaths=word.getFilePath(myfiledir).get(1).toString();
-      String filenames=word.getFileName(myfiledir).get(1).toString();
-	  System.out.println(filepaths+filenames);
-      
-	  // 打开word
-	  word.openDocument(filepaths);
-	  
-	  ArrayList warningList = new ArrayList();
-	  
-	  // 所有表格
-	  Dispatch tables = Dispatch.get(doc, "Tables").toDispatch(); 
-	  // 获取表格数目
-	  int tablesCount = Dispatch.get(tables,"Count").toInt();
-	  System.out.println("tablesCount"+"  "+tablesCount);
-	  // 循环获取表格
-	  for(int i=1;i<=tablesCount;i++)
-		  {
-		   // 生产warningBean
-		   // warningBean warning = new warningBean();
-		   // 获取第i个表格
-		   Dispatch table = Dispatch.call(tables, "Item", new Variant(i)).toDispatch();
-		   // 获取该表格所有行
-		   Dispatch rows = Dispatch.call(table, "Rows").toDispatch();
-		   // 获取该表格所有列
-		   Dispatch columns = Dispatch.call(table, "Columns").toDispatch();
-		   // 获取该表格行数
-		   int rowsCount = Dispatch.get(rows,"Count").toInt();
-		   System.out.println("rowsCount"+"  "+rowsCount);
-		   // 获取该表格列数
-		   int columnsCount = Dispatch.get(columns,"Count").toInt();
-		   System.out.println("columnsCount"+"  "+columnsCount);
-		   
-			   // 循环遍历行
-			   for(int j=1;j<=rowsCount;j++)
-			   {
-			    // 获取第i个表格第j行第一列标题
-//			    String title = word.getTxtFromCell(i, j, 1);
-			    String titles = word.getTxtFromCell(1, j, 2);
-				System.out.println(titles.toString().trim());
-			   }
-				  }  
-				  // 关闭该文档
-				  word.closeDocumentWithoutSave();
-				  // 关闭word
-				  word.close();
-				  } 
+// public static void main(String[] args)throws Exception{
+//	  Jtest word = new Jtest(); 
+//	  ArrayList<Cus> list=new ArrayList<Cus>();
+//	  list=word.getFileContent();
+//	  Iterator<Cus> it=list.iterator();
+//	  while (it.hasNext()) {
+//		System.out.println(it.next());
+//		
+//	}
+//		} 
 }
 
 
